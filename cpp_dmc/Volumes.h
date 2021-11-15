@@ -145,132 +145,6 @@ namespace dmc {
 		{
 			return x * x + y * y + z * z;
 		}
-		template<>
-		double surface<Surface::Sphere>(const double x, const double y, const double z)
-		{
-			return x * x + y * y + z * z;
-		}
-		template<>
-		double surface<Surface::Torus>(const double x, const double y, const double z)
-		{
-			const double R = 0.6 * 0.6;
-			const double r = 0.3 * 0.3;
-			double val = (x * x + y * y + z * z + R - r);
-			val = val * val;
-			val = val - 4 * R * (x * x + y * y);
-			return val;
-		}
-		template<>
-		double surface<Surface::TwoHoledTorus>(const double x, const double y, const double z)
-		{
-			// center one torus at (-1/2,0,0), the other at (1/2,0,0)
-			const double R = square(0.4);
-			const double r = square(0.2);
-			const double x1 = x + 0.4;
-			const double x2 = x - 0.4;
-			double val1 = square((square(x1) + square(y) + square(z) + R - r));
-			val1 = val1 - 4 * R * (square(x1) + square(y));
-			double val2 = square((square(x2) + square(y) + square(z) + R - r));
-			val2 = val2 - 4 * R * (square(x2) + square(y));
-			return std::min(val1, val2);
-		}
-		template<>
-		double surface<Surface::MonkeySaddle>(const double x_, const double y_, const double z_)
-		{
-			const double alpha = 0.5;
-			const double x = alpha * x_;
-			const double y = alpha * y_;
-			const double z = alpha * z_;
-			return z - x * x * x - 3 * x * y * y;
-		}
-		template<>
-		double surface<Surface::GenusTwo>(const double x_, const double y_, const double z_)
-		{
-			double alpha = 1.0;
-			double x = (x_ + 1.0) / 2.0;
-			double y = (y_ + 1.0) / 2.0;
-			double z = (z_ + 1.0) / 2.0;
-			x = alpha * (4 * x - 2);
-			y = alpha * (4 * y - 2);
-			z = alpha * (4 * z - 2);
-			double val = 2 * y * (y * y - 3 * x * x) * (1 - z * z) + (x * x + y * y) * (x * x + y * y) - (9 * z * z - 1) * (1 - z * z);
-			return val;
-		}
-		template<>
-		double surface<Surface::iWP>(const double x_, const double y_, const double z_)
-		{
-			const double alpha = 5.01;
-			//const float alpha = 1.01;
-			const double x = alpha * (x_ + 1) * pi;
-			const double y = alpha * (y_ + 1) * pi;
-			const double z = alpha * (z_ + 1) * pi;
-			return cos(x) * cos(y) + cos(y) * cos(z) + cos(z) * cos(x) - cos(x) * cos(y) * cos(z); // iso-value = 0
-		}
-		template<>
-		double surface<Surface::Neovius>(const double x_, const double y_, const double z_)
-		{
-			const double alpha = 2;
-			const double x = alpha * (x_ + 1) * pi;
-			const double y = alpha * (y_ + 1) * pi;
-			const double z = alpha * (z_ + 1) * pi;
-			return 3 * (cos(x) + cos(y) + cos(z)) + 4 * cos(x) * cos(y) * cos(z); // iso_value = 0.0
-		}
-		template<>
-		double surface<Surface::SteinerRoman>(const double x_, const double y_, const double z_)
-		{
-			const double alpha = 1.f;
-			//const float r = 1.5f;
-			const double x = alpha * x_;
-			const double y = alpha * y_;
-			const double z = alpha * z_;
-			auto sq = [](const double v) { return v * v;  };
-			return sq(x * x + y * y + z * z - 1.0f) - (sq(z - 1) - 2.0f * x * x) * (sq(z + 1) - 2 * y * y);
-			//return sq(x * y) + sq(x * z) + sq(y * z) - r * x * y * z;
-		}
-		template<>
-		double surface<Surface::Kummer>(const double x_, const double y_, const double z_)
-		{
-			const double alpha{ 2 };
-			const double x{ alpha * x_ };
-			const double y{ alpha * y_ };
-			const double z{ alpha * z_ };
-			const double mu{ 1.3 };
-			const double lambda{ (3 * mu * mu - 1) / (3 - mu * mu) };
-			const double w2{ std::sqrt(2) };
-			const double p = 1 - z - w2 * x;
-			const double q = 1 - z + w2 * x;
-			const double r = 1 + z + w2 * y;
-			const double s = 1 + z - w2 * y;
-			double v = (x * x + y * y + z * z - mu * mu);
-			v = v * v;
-			v = v - lambda * p * q * r * s;
-			return v;
-		}
-		template<>
-		double surface<Surface::Tetrahedron>(const double x_, const double y_, const double z_)
-		{
-			// set outside 0, inside 1
-			double val{ 0 };
-			Vertex v0{ -0.8,-0.8,-0.8 };
-			Vertex v1{  0.8,-0.8,-0.8 };
-			Vertex v2{  0.8, 0.8,-0.8 };
-			Vertex v3{  0.0, 0.0, 0.8 };
-			Vertex p{ x_,y_,z_ };
-
-			double d0 = distancePointTriangle(v0, v2, v1, p);
-			double d1 = distancePointTriangle(v0, v1, v3, p);
-			double d2 = distancePointTriangle(v1, v2, v3, p);
-			double d3 = distancePointTriangle(v0, v3, v2, p);
-			double d = std::min(std::fabs(d0), std::fabs(d1));
-			d = std::min(d, std::fabs(d2));
-			d = std::min(d, std::fabs(d3));
-			if (d == std::fabs(d0)) return d0;
-			else if (d == std::fabs(d1)) return d1;
-			else if (d == std::fabs(d2)) return d2;
-			else if (d == std::fabs(d3)) return d3;
-			return d;
-
-		}
 
 
 	private:
@@ -334,4 +208,130 @@ namespace dmc {
 			}
 		}
 	};
-} // namespace homotopy
+
+    template<>
+    double Volumes::surface<Volumes::Surface::Sphere>(const double x, const double y, const double z)
+    {
+        return x * x + y * y + z * z;
+    }
+    template<>
+    double Volumes::surface<Volumes::Surface::Torus>(const double x, const double y, const double z)
+    {
+        const double R = 0.6 * 0.6;
+        const double r = 0.3 * 0.3;
+        double val = (x * x + y * y + z * z + R - r);
+        val = val * val;
+        val = val - 4 * R * (x * x + y * y);
+        return val;
+    }
+    template<>
+    double Volumes::surface<Volumes::Surface::TwoHoledTorus>(const double x, const double y, const double z)
+    {
+        // center one torus at (-1/2,0,0), the other at (1/2,0,0)
+        const double R = square(0.4);
+        const double r = square(0.2);
+        const double x1 = x + 0.4;
+        const double x2 = x - 0.4;
+        double val1 = square((square(x1) + square(y) + square(z) + R - r));
+        val1 = val1 - 4 * R * (square(x1) + square(y));
+        double val2 = square((square(x2) + square(y) + square(z) + R - r));
+        val2 = val2 - 4 * R * (square(x2) + square(y));
+        return std::min(val1, val2);
+    }
+    template<>
+    double Volumes::surface<Volumes::Surface::MonkeySaddle>(const double x_, const double y_, const double z_)
+    {
+        const double alpha = 0.5;
+        const double x = alpha * x_;
+        const double y = alpha * y_;
+        const double z = alpha * z_;
+        return z - x * x * x - 3 * x * y * y;
+    }
+    template<>
+    double Volumes::surface<Volumes::Surface::GenusTwo>(const double x_, const double y_, const double z_)
+    {
+        double alpha = 1.0;
+        double x = (x_ + 1.0) / 2.0;
+        double y = (y_ + 1.0) / 2.0;
+        double z = (z_ + 1.0) / 2.0;
+        x = alpha * (4 * x - 2);
+        y = alpha * (4 * y - 2);
+        z = alpha * (4 * z - 2);
+        double val = 2 * y * (y * y - 3 * x * x) * (1 - z * z) + (x * x + y * y) * (x * x + y * y) - (9 * z * z - 1) * (1 - z * z);
+        return val;
+    }
+    template<>
+    double Volumes::surface<Volumes::Surface::iWP>(const double x_, const double y_, const double z_)
+    {
+        const double alpha = 5.01;
+        //const float alpha = 1.01;
+        const double x = alpha * (x_ + 1) * pi;
+        const double y = alpha * (y_ + 1) * pi;
+        const double z = alpha * (z_ + 1) * pi;
+        return cos(x) * cos(y) + cos(y) * cos(z) + cos(z) * cos(x) - cos(x) * cos(y) * cos(z); // iso-value = 0
+    }
+    template<>
+    double Volumes::surface<Volumes::Surface::Neovius>(const double x_, const double y_, const double z_)
+    {
+        const double alpha = 2;
+        const double x = alpha * (x_ + 1) * pi;
+        const double y = alpha * (y_ + 1) * pi;
+        const double z = alpha * (z_ + 1) * pi;
+        return 3 * (cos(x) + cos(y) + cos(z)) + 4 * cos(x) * cos(y) * cos(z); // iso_value = 0.0
+    }
+    template<>
+    double Volumes::surface<Volumes::Surface::SteinerRoman>(const double x_, const double y_, const double z_)
+    {
+        const double alpha = 1.f;
+        //const float r = 1.5f;
+        const double x = alpha * x_;
+        const double y = alpha * y_;
+        const double z = alpha * z_;
+        auto sq = [](const double v) { return v * v;  };
+        return sq(x * x + y * y + z * z - 1.0f) - (sq(z - 1) - 2.0f * x * x) * (sq(z + 1) - 2 * y * y);
+        //return sq(x * y) + sq(x * z) + sq(y * z) - r * x * y * z;
+    }
+    template<>
+    double Volumes::surface<Volumes::Surface::Kummer>(const double x_, const double y_, const double z_)
+    {
+        const double alpha{ 2 };
+        const double x{ alpha * x_ };
+        const double y{ alpha * y_ };
+        const double z{ alpha * z_ };
+        const double mu{ 1.3 };
+        const double lambda{ (3 * mu * mu - 1) / (3 - mu * mu) };
+        const double w2{ std::sqrt(2) };
+        const double p = 1 - z - w2 * x;
+        const double q = 1 - z + w2 * x;
+        const double r = 1 + z + w2 * y;
+        const double s = 1 + z - w2 * y;
+        double v = (x * x + y * y + z * z - mu * mu);
+        v = v * v;
+        v = v - lambda * p * q * r * s;
+        return v;
+    }
+    template<>
+    double Volumes::surface<Volumes::Surface::Tetrahedron>(const double x_, const double y_, const double z_)
+    {
+        // set outside 0, inside 1
+        double val{ 0 };
+        Vertex v0{ -0.8,-0.8,-0.8 };
+        Vertex v1{  0.8,-0.8,-0.8 };
+        Vertex v2{  0.8, 0.8,-0.8 };
+        Vertex v3{  0.0, 0.0, 0.8 };
+        Vertex p{ x_,y_,z_ };
+
+        double d0 = distancePointTriangle(v0, v2, v1, p);
+        double d1 = distancePointTriangle(v0, v1, v3, p);
+        double d2 = distancePointTriangle(v1, v2, v3, p);
+        double d3 = distancePointTriangle(v0, v3, v2, p);
+        double d = std::min(std::fabs(d0), std::fabs(d1));
+        d = std::min(d, std::fabs(d2));
+        d = std::min(d, std::fabs(d3));
+        if (d == std::fabs(d0)) return d0;
+        else if (d == std::fabs(d1)) return d1;
+        else if (d == std::fabs(d2)) return d2;
+        else if (d == std::fabs(d3)) return d3;
+        return d;
+    }
+} // namespace dmc
